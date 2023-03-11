@@ -71,7 +71,6 @@ class Processor:
             count = text.count(word)
             percent = count / word_count
             output.append(percent)
-        self.processed_output.append(output)
         return output
 
     def process_file(self, file):
@@ -90,7 +89,13 @@ class Processor:
         else:
             payload = e_mail.get_payload(decode=True)
             text = payload.decode(errors='ignore')
-        self.process_text(text)
+        output = self.process_text(text)
+        folder = os.path.dirname(file)
+        label = 0
+        if folder.__contains__("Spam"):
+            label = 1
+        output.append(label)
+        self.processed_output.append(output)
 
     def process_directory(self, folder):
         path = os.path.join('.', folder)
@@ -99,9 +104,8 @@ class Processor:
         a = np.array(self.processed_output)
         with open('processed_output.csv', 'w', newline='') as file:
             my_writer = csv.writer(file)
+            header = self.search_dictionary
+            header.append('label')
+            my_writer.writerow(header)
             my_writer.writerows(a)
 
-
-p = Processor()
-
-p.process_directory("data")
