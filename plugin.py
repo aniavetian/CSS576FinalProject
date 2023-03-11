@@ -1,3 +1,11 @@
+"""
+Ani Avetian
+Christian Bergh
+Saja Faham Alsulami
+CSS 576 Final Project - Model
+
+File contains the code to build the plugin milter
+"""
 from __future__ import print_function
 
 import os
@@ -5,6 +13,7 @@ import sys
 from io import BytesIO
 from email_processor import Processor
 import Milter
+
 
 class SpamFilterMilter(Milter.Base):
     """Milter to filter spam based on ML model."""
@@ -18,11 +27,11 @@ class SpamFilterMilter(Milter.Base):
         self.mail_to = None
         self.mail_from = None
         self.mail_subject = None
-        self.mail_date = None  # need
+        self.mail_date = None
         self.message_id = None
 
-        self.body = None
-        self.doby_size = 0
+        self.mail_body = None
+        self.boby_size = 0
         self.user = None
 
     @Milter.symlist('{auth_authen}')
@@ -30,12 +39,10 @@ class SpamFilterMilter(Milter.Base):
     def envfrom(self, f, *str):
         self.mail_from = f
         self.fp = BytesIO()
-
         return Milter.CONTINUE
 
     def envrcpt(self, to, *str):
         self.mail_to = to
-
         return Milter.CONTINUE
 
     @Milter.decode('bytes')
@@ -43,11 +50,9 @@ class SpamFilterMilter(Milter.Base):
         lname = name.lower()
         if lname == 'subject':
             self.mail_subject = val
-            return Milter.CONTINUE
-
-        if lname == 'message-id' and len(val) < 4:
+        if lname == 'message-id':
             self.message_id = val
-            return Milter.REJECT
+        return Milter.CONTINUE
 
     def eoh(self):
         if not self.fp:
@@ -57,7 +62,7 @@ class SpamFilterMilter(Milter.Base):
     def body(self, chunk):  # copy body to temp file
         if self.fp:
             self.fp.write(chunk)  # IOError causes TEMP-FAIL in milter
-            self.bodysize += len(chunk)
+            self.boby_size += len(chunk)
         return Milter.CONTINUE
 
     def _headerChange(self, msg, name, value):
@@ -73,16 +78,14 @@ class SpamFilterMilter(Milter.Base):
         if not self.fp:
             return Milter.ACCEPT
         self.fp.seek(0)
-        processed_email = self.processor.process_text(self.fp)
+        self.mail_body = self.fp.decode("utf-8", errors='ignore')
+        processed_email = self.processor.process_text(self.mail_body)
         prediction = self.prediction_model.model.prediction(processed_email)
         if prediction[0] > 0.9:
             return Milter.REJECT  # 90% confident email is spam
         return Milter.ACCEPT  # Email is not spam
 
     def close(self):
-        sys.stdout.flush()  # make log messages visible
-        if self.tempname:
-            os.remove(self.tempname)  # remove in case session aborted
         if self.fp:
             self.fp.close()
         return Milter.CONTINUE

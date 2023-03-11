@@ -1,6 +1,8 @@
 """
 Ani Avetian
-CSS 555 Final Project - Model
+Christian Bergh
+Saja Faham Alsulami
+CSS 576 Final Project - Model
 
 File contains the code to build the neural network
 """
@@ -64,11 +66,6 @@ class Model:
       # Do a 75% (data) to 25% (test data) split
       self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(X, y, random_state=104, test_size=0.25, shuffle=True)
 
-      self.x_train = self.x_train.astype('float32') / 255
-      self.x_test = self.x_test.astype('float32') / 255
-
-      self.y_train = np.asarray(self.y_train.astype('float32')).reshape((-1, 1))
-      self.y_test = np.asarray(self.y_test.astype('float32')).reshape((-1, 1))
 
    """
    Function build the neural network and uses early stopping to ensure we prevent
@@ -82,7 +79,7 @@ class Model:
       self.model.add(Dropout(0.15))
       self.model.add(Dense(self.UNIT, activation='relu'))
       self.model.add(Dropout(0.05))
-      self.model.add(Dense(1, activation='softmax'))
+      self.model.add(Dense(1, activation='sigmoid'))
 
       # Compile model
       self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
