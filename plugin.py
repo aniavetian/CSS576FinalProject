@@ -2,7 +2,7 @@
 Ani Avetian
 Christian Bergh
 Saja Faham Alsulami
-CSS 576 Final Project - Model
+CSS 576 Final Project - plugin
 
 File contains the code to build the plugin milter
 """
@@ -18,9 +18,10 @@ import Milter
 class SpamFilterMilter(Milter.Base):
     """Milter to filter spam based on ML model."""
 
-    def __init__(self, model):  # A new instance with each new connection.
+    def __init__(self, model, backup):  # A new instance with each new connection.
         self.id = Milter.uniqueID()  # Integer incremented with each call.
         self.prediction_model = model
+        self.backup_model = backup
         self.processor = Processor()
         self.fp = None
 
@@ -81,8 +82,12 @@ class SpamFilterMilter(Milter.Base):
         self.mail_body = self.fp.decode("utf-8", errors='ignore')
         processed_email = self.processor.process_text(self.mail_body)
         prediction = self.prediction_model.model.prediction(processed_email)
-        if prediction[0] > 0.9:
+        if prediction[0][0] > 0.9:
             return Milter.REJECT  # 90% confident email is spam
+        else:
+            prediction = self.backup_model.model.prediction(processed_email)
+            if prediction[0][0] > 0.9:
+                return Milter.REJECT  # backup is 90% confident email is spam
         return Milter.ACCEPT  # Email is not spam
 
     def close(self):
@@ -94,7 +99,7 @@ class SpamFilterMilter(Milter.Base):
         return Milter.CONTINUE
 
 
-def run_filter(my_model):
+def run_filter(my_model, backup):
     socket_name = os.getenv("HOME") + "/pythonsock"
     print("""To use this with sendmail, add the following to sendmail.cf:
         O InputMailFilters=pythonfilter
@@ -103,7 +108,7 @@ def run_filter(my_model):
         sample  milter startup""" % socket_name)
     sys.stdout.flush()
 
-    Milter.factory = SpamFilterMilter(my_model)
+    Milter.factory = SpamFilterMilter(my_model, backup)
     Milter.set_flags(Milter.CHGBODY + Milter.CHGHDRS + Milter.ADDHDRS)
 
     Milter.runmilter("pythonfilter", socket_name, 240)
