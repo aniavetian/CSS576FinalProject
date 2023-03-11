@@ -24,7 +24,7 @@ class Model:
       self.x_train = None
       self.x_test = None
       self.y_train = None
-      self.y_train = None
+      self.y_test = None
       self.UNIT = 5
       self.EPOCHS = 200
       self.BATCH_SIZE = 100
