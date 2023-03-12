@@ -11,6 +11,8 @@ from __future__ import print_function
 import os
 import sys
 from io import BytesIO
+
+import preprocessing
 from email_processor import Processor
 import Milter
 
@@ -28,12 +30,19 @@ class SpamFilterMilter(Milter.Base):
         self.mail_to = None
         self.mail_from = None
         self.mail_subject = None
-        self.mail_date = None
         self.message_id = None
 
         self.mail_body = None
         self.boby_size = 0
         self.user = None
+
+    def to_string(self):
+        email = self.mail_to + "\n"
+        email += self.mail_from + "\n"
+        email += self.mail_subject + "\n"
+        email += self.message_id + "\n"
+        email += self.mail_body + "\n"
+        return email
 
     @Milter.symlist('{auth_authen}')
     @Milter.noreply
@@ -80,11 +89,14 @@ class SpamFilterMilter(Milter.Base):
             return Milter.ACCEPT
         self.fp.seek(0)
         self.mail_body = self.fp.decode("utf-8", errors='ignore')
-        processed_email = self.processor.process_text(self.mail_body)
+
+        email = self.to_string()
+        processed_email = preprocessing.fillCsv(email)
         prediction = self.prediction_model.model.prediction(processed_email)
         if prediction[0][0] > 0.9:
             return Milter.REJECT  # 90% confident email is spam
         else:
+            processed_email = self.processor.process_text(self.mail_body)
             prediction = self.backup_model.model.prediction(processed_email)
             if prediction[0][0] > 0.9:
                 return Milter.REJECT  # backup is 90% confident email is spam

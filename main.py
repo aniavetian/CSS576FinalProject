@@ -12,7 +12,7 @@ import numpy as np
 
 
 def main():
-    model = Model('COMBINEDFINAL.csv')
+    model = Model('dataset.csv')
     backup = BackupModel('spambase.data.csv')
 
     # Can use my_model with the predict function
