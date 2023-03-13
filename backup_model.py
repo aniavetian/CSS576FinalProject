@@ -4,6 +4,7 @@ import sklearn
 from keras import models
 from keras.callbacks import EarlyStopping
 from keras.layers import Dense
+import keras.backend as K
 
 
 class BackupModel:
@@ -37,13 +38,13 @@ class BackupModel:
         # Compile model
         model.compile(optimizer='adam',
                       loss='binary_crossentropy',
-                      metrics=['accuracy'])
+                      metrics=['accuracy', my_f1_Score])
         return model
 
     def __load_data(self, file):
         data = pd.read_csv(file)
         x = data.loc[:, data.columns != 'label']  # all the feature vectors
-        y = data['label']   # labels, 0 as benign, 1 as malicious
+        y = data['label']  # labels, 0 as benign, 1 as malicious
 
         # Load data
         x_train, x_test, y_train, y_test = sklearn.model_selection.train_test_split(x, y, test_size=0.1)
@@ -67,6 +68,17 @@ class BackupModel:
         score = self.model.evaluate(self.X_test, self.y_test, verbose=0)
         print('Test loss:', score[0])
         print('Test accuracy:', score[1])
+        print('F1 score:', score[2])
 
     def get_model(self):
         return self.model
+
+
+def my_f1_Score(y_true, y_pred):  # taken from old keras source code
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+    precision = true_positives / (predicted_positives + K.epsilon())
+    recall = true_positives / (possible_positives + K.epsilon())
+    f1_val = 2 * ((precision * recall) / (precision + recall + K.epsilon()))
+    return f1_val

@@ -8,10 +8,14 @@ File contains the code to build the neural network
 """
 
 import pandas as pd
+from keras.callbacks import EarlyStopping
 from sklearn.preprocessing import MinMaxScaler
 from sklearn.model_selection import train_test_split
+from sklearn import metrics
+import tensorflow_addons as tsa
 from keras.layers import Dense, Dropout
 from keras import models
+import keras.backend as K
 
 
 class Model:
@@ -29,6 +33,10 @@ class Model:
         self.UNIT = 5
         self.EPOCHS = 200
         self.BATCH_SIZE = 100
+        self.early_stopping = EarlyStopping(
+            monitor='val_accuracy',
+            patience=5,
+        )
 
         self.__load_dataset(file_name)
         self.__prep_dataset()
@@ -88,16 +96,20 @@ class Model:
         self.model.add(Dense(1, activation='sigmoid'))
 
         # Compile model
-        self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy'])
+        self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', my_f1_Score])
 
         # Train model + use early stopping
-        self.model.fit(self.x_train, self.y_train, batch_size=self.BATCH_SIZE, epochs=self.EPOCHS,
+        self.model.fit(self.x_train, self.y_train,
+                       batch_size=self.BATCH_SIZE,
+                       epochs=self.EPOCHS,
+                       callbacks=[self.early_stopping],
                        validation_data=(self.x_test, self.y_test))
 
         # Evaluate model
         score = self.model.evaluate(self.x_test, self.y_test, verbose=0)
         print('Test loss:', score[0])
         print('Test accuracy:', score[1])
+        print('F1 score:', score[2])
 
         # Summary of neural network
         self.model.summary()
@@ -107,3 +119,13 @@ class Model:
         Return the neural network model for later use.
         """
         return self.model
+
+
+def my_f1_Score(y_true, y_pred):  # taken from old keras source code
+    true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
+    possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
+    predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))
+    precision = true_positives / (predicted_positives + K.epsilon())
+    recall = true_positives / (possible_positives + K.epsilon())
+    f1_val = 2 * ((precision * recall) / (precision + recall + K.epsilon()))
+    return f1_val

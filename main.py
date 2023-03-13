@@ -23,15 +23,15 @@ def main():
     z = [0.65] * 54
     y = np.array([z])
     result = my_model.predict(x)
-    print(result[0][0])  # test prediction
+    print(result)  # test prediction
 
     result2 = model.model.predict(x)
-    print(result2[0][0])
+    print(result2)
 
     result3 = backup.model.predict(y)
-    print(result3[0][0])
+    print(result3)
     result4 = my_backup.predict(y)
-    print(result4[0][0])
+    print(result4)
 
 
 if __name__ == '__main__':
