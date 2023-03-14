@@ -92,12 +92,12 @@ class SpamFilterMilter(Milter.Base):
 
         email = self.to_string()
         processed_email = preprocessing.fillCsv(email)
-        prediction = self.prediction_model.model.prediction(processed_email)
+        prediction = self.prediction_model.prediction(processed_email)
         if prediction[0][0] > 0.9:
             return Milter.REJECT  # 90% confident email is spam
         else:
             processed_email = self.processor.process_text(self.mail_body)
-            prediction = self.backup_model.model.prediction(processed_email)
+            prediction = self.backup_model.prediction(processed_email)
             if prediction[0][0] > 0.9:
                 return Milter.REJECT  # backup is 90% confident email is spam
         return Milter.ACCEPT  # Email is not spam

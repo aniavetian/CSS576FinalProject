@@ -32,6 +32,7 @@ def getKeywords():
 
 
 def fillCsv(rawEmail):
+    output = [0] * len(KEYWORDS)
     email_message = email.message_from_string(rawEmail)
 
     subject = email_message['Subject']
@@ -47,44 +48,46 @@ def fillCsv(rawEmail):
     totalLinks = 0
     totalKeywords = 0
 
-    try:
-        for part in email_message.walk():
-            content_type = part.get_content_type()
-            if content_type in ["text/plain"]:
-                textBody = part.get_payload(decode=True)
-                textBody = textBody.decode(errors='ignore')
-                textBody = textBody.lower()
+    for part in email_message.walk():
+        content_type = part.get_content_type()
+        if content_type in ["text/plain"]:
+            textBody = part.get_payload(decode=True)
+            textBody = textBody.decode(errors='ignore')
+            textBody = textBody.lower()
 
-                # Remove unwanted characters, punctuations (commas) from the body of the email
-                textBody = re.sub(r'[^\w\s\.\?!]', ' ', textBody)
-                textBody = textBody.lower()
-                textBody = re.sub(r',', '', textBody)
-                textBody = textBody.strip()
+            # Remove unwanted characters, punctuations (commas) from the body of the email
+            textBody = re.sub(r'[^\w\s\.\?!]', ' ', textBody)
+            textBody = textBody.lower()
+            textBody = re.sub(r',', '', textBody)
+            textBody = textBody.strip()
 
-                for keyword in KEYWORDS:
-                    if keyword in textBody:
-                        totalKeywords += 1
+            for index, keyword in enumerate(KEYWORDS):
+                count = textBody.count(keyword)
+                totalKeywords += count
+                output[index] += count
 
-            if content_type in ["text/html"]:
-                body = part.get_payload(decode=True)
-                body = body.decode(errors='ignore')
-                body = body.lower()
+        if content_type in ["text/html"]:
+            body = part.get_payload(decode=True)
+            body = body.decode(errors='ignore')
+            body = body.lower()
 
-                for tag in NON_STANDARD_TAGS:
-                    if tag in body:
-                        totalNonStandardTags += 1
+            for tag in NON_STANDARD_TAGS:
+                if tag in body:
+                    totalNonStandardTags += 1
 
-                for tag in HIDDEN_TAGS:
-                    pattern = re.compile(r'<' + tag + r'\b[^>]*>(.*?)</' + tag + r'>')
-                    totalHiddenTags += len(re.findall(pattern, body))
+            for tag in HIDDEN_TAGS:
+                pattern = re.compile(r'<' + tag + r'\b[^>]*>(.*?)</' + tag + r'>')
+                totalHiddenTags += len(re.findall(pattern, body))
 
-                totalLinks += len(re.findall(URL_PATTERN, body))
+            totalLinks += len(re.findall(URL_PATTERN, body))
+    output.append(totalKeywords)
+    output.append(totalHiddenTags)
+    output.append(totalLinks)
+    output.append(totalKeywordsInSubject)
+    output.append(totalKeywords)
 
-        return [totalNonStandardTags, totalHiddenTags, totalLinks, totalKeywordsInSubject, totalKeywords]
+    return output
 
-    except Exception as e:
-        print("Error")
-        print(e)
 
 
 """ do labeling and delete the empty value """
@@ -92,12 +95,10 @@ def fillCsv(rawEmail):
 
 def spam_ham_data():
     df = pd.read_csv('dataset.csv')
-    df = df.dropna()
     print(df.head())
     counts = df['classification'].value_counts()
     print("Number of ham messages:", counts[0])
     print("Number of spam messages:", counts[1])
-    print(df.duplicated().sum())
 
 
 def process_directory(folder):
@@ -115,8 +116,9 @@ def process_directory(folder):
             csv_rows.append(csv_row)
     with open('dataset.csv', 'w', newline='', encoding='UTF8') as file:
         my_writer = csv.writer(file)
-        header = ['non_standard_html_tag_count', 'spam_keywords', 'total_links', 'total_keywords_in_subject',
-                  'total_keywords_in_body', 'classification']
+        header = KEYWORDS
+        header.extend(['non_standard_html_tag_count', 'spam_keywords', 'total_links', 'total_keywords_in_subject',
+                       'total_keywords_in_body', 'classification'])
         my_writer.writerow(header)
         my_writer.writerows(csv_rows)
 
@@ -129,15 +131,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-"""
-from
-to
-subject
-body
-html tags in subject
-links in body
-keywords like 'free', 'congrats'
-use of non standard html
-
-"""

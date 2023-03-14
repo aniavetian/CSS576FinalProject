@@ -19,13 +19,15 @@ def main():
     my_model = model.get_model()
     my_backup = backup.get_model()
 
-    x = np.array([[0.0, 0.44, 0.001, 0.8, 0.75]])  # Test Value to test prediction
+    x = [0.65] * 48  # Test Value to test prediction
     z = [0.65] * 54
     y = np.array([z])
-    result = my_model.predict(x)
+    w = np.array([x])
+
+    result = my_model.predict(w)
     print(result)  # test prediction
 
-    result2 = model.model.predict(x)
+    result2 = model.model.predict(w)
     print(result2)
 
     result3 = backup.model.predict(y)

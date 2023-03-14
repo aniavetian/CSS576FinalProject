@@ -62,22 +62,13 @@ class Model:
         """
         Function prepares the data to be used by the neural network
         """
-        # Only using relevant columns with features we want
-        self.df = self.df[['non_standard_html_tag_count', 'spam_keywords', 'total_links', 'total_keywords_in_subject',
-                           'total_keywords_in_body', 'classification']]
-
-        # Scale numerical columns (normalize) so model can understand them more easily
-        scaler = MinMaxScaler()
-        self.df[['non_standard_html_tag_count', 'spam_keywords', 'total_links', 'total_keywords_in_subject',
-                 'total_keywords_in_body']] = \
-            scaler.fit_transform(self.df[['non_standard_html_tag_count', 'spam_keywords', 'total_links',
-                                          'total_keywords_in_subject', 'total_keywords_in_body']])
-
-        self.df['classification'] = self.df['classification'].apply(self.custom_encode)
-
         # Separate into features (X) and label (y)
         X = self.df.loc[:, self.df.columns != 'classification']
         y = self.df['classification']
+
+        # Scale numerical columns (normalize) so model can understand them more easily
+        scaler = MinMaxScaler()
+        X = scaler.fit_transform(X)
 
         # Do a 75% (data) to 25% (test data) split
         self.x_train, self.x_test, self.y_train, self.y_test = train_test_split(X, y, random_state=104, test_size=0.25,
