@@ -25,9 +25,10 @@ See the sendmail README for all dependencies including sendmail, libmilter, pymi
 O InputMailFilters=pythonfilter
 Xpythonfilter,        S=local:/home/username/pythonsock
 ```  
-5. Run the main.py filter milter with: python main.py  
+5. Install pymilter ```pip install pymilter```
+6. Run the main.py filter milter with: python main.py  
 Note: that milters should almost certainly not run as root.
-6. Send emails through sendmail and enjoy the filtering!
+7. Send emails through sendmail and enjoy the filtering!
 
 ## Notes
 - The datasets used to train the models are included in the Data folder.
