@@ -27,3 +27,8 @@ Xpythonfilter,        S=local:/home/username/pythonsock
 ```  
 5. Run the main.py filter milter with: python main.py  
 Note: that milters should almost certainly not run as root.
+6. Send emails through sendmail and enjoy the filtering!
+
+## Notes
+- The datasets used to train the models are included in the Data folder.
+- These datasets can be re-preprocessed by running the preprocess.py if needed
