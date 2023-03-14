@@ -1,14 +1,16 @@
-# data prepocessing 
-
 """
-Import library 
+Ani Avetian
+Christian Bergh
+Saja Faham Alsulami
+CSS 576 Final Project - preprocessing
+
+File contains the code to build the preprocessing mechanism
 """
 import csv
 import email
 import os
 import re
 from pathlib import Path
-
 import pandas as pd
 
 NON_STANDARD_TAGS = ['<blink', '<marquee', '<table']
@@ -16,10 +18,11 @@ HIDDEN_TAGS = ['style', 'font']
 KEYWORDS = []
 URL_PATTERN = re.compile(r'http[s]?://(?:[a-zA-Z]|[0-9]|[$-_@.&+]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+')
 
-"""To find the most popular word in email"""
-
 
 def getKeywords():
+    """
+    get keywords from file
+    """
     with open('keywords.txt') as file:
         lines = file.readlines()
         for line in lines:
@@ -28,10 +31,12 @@ def getKeywords():
             KEYWORDS.append(line)
 
 
-"""Fill the csv file """
-
-
 def fillCsv(rawEmail):
+    """
+    fill a csv line
+    :param rawEmail:
+    :return: csv array
+    """
     output = [0] * len(KEYWORDS)
     email_message = email.message_from_string(rawEmail)
 
@@ -85,15 +90,13 @@ def fillCsv(rawEmail):
     output.append(totalLinks)
     output.append(totalKeywordsInSubject)
     output.append(totalKeywords)
-
     return output
 
 
-
-""" do labeling and delete the empty value """
-
-
 def spam_ham_data():
+    """
+    print stats of spam and ham data
+    """
     df = pd.read_csv('dataset.csv')
     print(df.head())
     counts = df['classification'].value_counts()
@@ -102,6 +105,10 @@ def spam_ham_data():
 
 
 def process_directory(folder):
+    """
+    process a directory of raw data for preprocessing
+    :param folder:
+    """
     path = os.path.join('.', folder)
     csv_rows = []
     for filename in Path(path).rglob('*.txt'):
@@ -124,10 +131,9 @@ def process_directory(folder):
 
 
 def main():
+    """
+    main function to execute preprocessing on dataset
+    """
     getKeywords()
     process_directory('data')
     spam_ham_data()
-
-
-if __name__ == '__main__':
-    main()

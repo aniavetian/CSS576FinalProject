@@ -7,21 +7,19 @@ CSS 576 Final Project - Model
 File contains the code to build the neural network
 """
 
-import pandas as pd
-from keras.callbacks import EarlyStopping
-from sklearn.preprocessing import MinMaxScaler
-from sklearn.model_selection import train_test_split
-from sklearn import metrics
-import tensorflow_addons as tsa
-from keras.layers import Dense, Dropout
-from keras import models
 import keras.backend as K
+import pandas as pd
+from keras import models
+from keras.callbacks import EarlyStopping
+from keras.layers import Dense, Dropout
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import MinMaxScaler
 
 
 class Model:
     """
-   Initializer
-   """
+    Initializer
+    """
 
     def __init__(self, file_name):
         self.model = None
@@ -48,15 +46,6 @@ class Model:
         :param file_name:
         """
         self.df = pd.read_csv(file_name)
-
-    def custom_encode(self, val):
-        """
-        Custom encoding function to encode whether we have spam or ham in the dataset
-        """
-        if val == 'spam':
-            return 1
-        else:
-            return 0
 
     def __prep_dataset(self):
         """
@@ -87,7 +76,7 @@ class Model:
         self.model.add(Dense(1, activation='sigmoid'))
 
         # Compile model
-        self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', my_f1_Score])
+        self.model.compile(optimizer='adam', loss='binary_crossentropy', metrics=['accuracy', my_f1_score])
 
         # Train model + use early stopping
         self.model.fit(self.x_train, self.y_train,
@@ -112,7 +101,13 @@ class Model:
         return self.model
 
 
-def my_f1_Score(y_true, y_pred):  # taken from old keras source code
+def my_f1_score(y_true, y_pred):  # taken from old keras source code
+    """
+    custom f1 score function
+    :param y_true:
+    :param y_pred:
+    :return: calculated f1 value
+    """
     true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
     possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
     predicted_positives = K.sum(K.round(K.clip(y_pred, 0, 1)))

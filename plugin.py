@@ -7,11 +7,9 @@ CSS 576 Final Project - plugin
 File contains the code to build the plugin milter
 """
 from __future__ import print_function
-
 import os
 import sys
 from io import BytesIO
-
 import preprocessing
 from email_processor import Processor
 import Milter
@@ -34,9 +32,12 @@ class SpamFilterMilter(Milter.Base):
 
         self.mail_body = None
         self.boby_size = 0
-        self.user = None
 
     def to_string(self):
+        """
+        write email as text
+        :return: string representation of email
+        """
         email = self.mail_to + "\n"
         email += self.mail_from + "\n"
         email += self.mail_subject + "\n"
@@ -64,42 +65,30 @@ class SpamFilterMilter(Milter.Base):
             self.message_id = val
         return Milter.CONTINUE
 
-    def eoh(self):
-        if not self.fp:
-            return Milter.TEMPFAIL  # not seen by envfrom
-        return Milter.CONTINUE
-
     def body(self, chunk):  # copy body to temp file
         if self.fp:
             self.fp.write(chunk)  # IOError causes TEMP-FAIL in milter
             self.boby_size += len(chunk)
         return Milter.CONTINUE
 
-    def _headerChange(self, msg, name, value):
-        if value:  # add header
-            self.addheader(name, value)
-        else:  # delete all headers with name
-            h = msg.getheaders(name)
-            cnt = len(h)
-            for i in range(cnt, 0, -1):
-                self.chgheader(name, i - 1, '')
-
     def eom(self):
         if not self.fp:
             return Milter.ACCEPT
         self.fp.seek(0)
         self.mail_body = self.fp.decode("utf-8", errors='ignore')
-
         email = self.to_string()
         processed_email = preprocessing.fillCsv(email)
         prediction = self.prediction_model.prediction(processed_email)
         if prediction[0][0] > 0.9:
+            print("Email possibly spam. Prediction rating: ", prediction[0][0])
             return Milter.REJECT  # 90% confident email is spam
         else:
             processed_email = self.processor.process_text(self.mail_body)
             prediction = self.backup_model.prediction(processed_email)
             if prediction[0][0] > 0.9:
+                print("Email possibly spam. Prediction rating: ", prediction[0][0])
                 return Milter.REJECT  # backup is 90% confident email is spam
+        print("Email not spam, ENJOY THE HAM!")
         return Milter.ACCEPT  # Email is not spam
 
     def close(self):
@@ -112,6 +101,11 @@ class SpamFilterMilter(Milter.Base):
 
 
 def run_filter(my_model, backup):
+    """
+    run the plugin filter milter code
+    :param my_model: main model to use as primary validation
+    :param backup: secondary model to use as backup validation
+    """
     socket_name = os.getenv("HOME") + "/pythonsock"
     print("""To use this with sendmail, add the following to sendmail.cf:
         O InputMailFilters=pythonfilter

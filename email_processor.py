@@ -1,3 +1,11 @@
+"""
+Ani Avetian
+Christian Bergh
+Saja Faham Alsulami
+CSS 576 Final Project - email processing
+
+File contains the code to build the backup email processing
+"""
 import email
 import os
 from pathlib import Path
@@ -65,6 +73,11 @@ class Processor:
         self.processed_output = []
 
     def process_text(self, text):
+        """
+        process the text for keywords to search
+        :param text:
+        :return: csv
+        """
         word_count = max(1, len(text.split()))
         output = []
         for word in self.search_dictionary:
@@ -74,6 +87,10 @@ class Processor:
         return output
 
     def process_file(self, file):
+        """
+        process a file for csv
+        :param file:
+        """
         with open(os.path.join(os.getcwd(), file), 'r', encoding='utf8', errors='ignore') as f:
             email_string = f.read()
         e_mail = email.message_from_string(email_string)
@@ -98,6 +115,10 @@ class Processor:
         self.processed_output.append(output)
 
     def process_directory(self, folder):
+        """
+        process a folder to a csv output
+        :param folder:
+        """
         path = os.path.join('.', folder)
         for file in Path(path).rglob('*.txt'):
             self.process_file(file)
