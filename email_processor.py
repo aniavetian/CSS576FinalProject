@@ -130,3 +130,6 @@ class Processor:
             my_writer.writerow(header)
             my_writer.writerows(a)
 
+def main():
+    p = Processor()
+    p.process_directory("data")
