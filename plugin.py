@@ -23,7 +23,7 @@ class SpamFilterMilter(Milter.Base):
         self.prediction_model = model
         self.backup_model = backup
         self.processor = Processor()
-        self.fp = None
+        self.fp = BytesIO()
 
         self.mail_to = None
         self.mail_from = None
@@ -49,7 +49,6 @@ class SpamFilterMilter(Milter.Base):
     @Milter.noreply
     def envfrom(self, f, *str):
         self.mail_from = f
-        self.fp = BytesIO()
         return Milter.CONTINUE
 
     def envrcpt(self, to, *str):
