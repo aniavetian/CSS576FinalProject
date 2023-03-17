@@ -1,12 +1,28 @@
 # CSS576FinalProject
 
 ## Requirements
-This project is dependent upon the user having sendmail and libmilter dependencies installed. 
-See: https://github.com/sdgathman/pymilter  
+
+This project is dependent upon the user having sendmail and libmilter dependencies installed.
+
+See: https://github.com/sdgathman/pymilter
+
 See: https://pythonhosted.org/milter/
-Python milter extension: https://pypi.python.org/pypi/pymilter/ Python: http://www.python.org Sendmail: http://www.sendmail.org
+
+Python milter extension: https://pypi.python.org/pypi/pymilter/
+
+Python: http://www.python.org
+
+Sendmail: http://www.sendmail.org
+
+User must also install dependencies used to build the nerual networks. Those dependencies are at the top of the following files:
+- `plugin.py`
+- `model.py`
+- `backup_model.py`
+- `preprocessing.py`
+- `email_processor.py`
 
 ### Python and Sendmail Requirements
+
 - The email support requires python 2.4.
 - Python must be configured with thread support. This is because pymilter uses sendmail's libmilter which requires thread support.
 - You must compile sendmail with libmilter enabled. In versions of sendmail prior to 8.12 libmilter is marked FFR (For Future Release) and is not installed by default. Sendmail 8.12 still does not enable libmilter by default. You must explicitly select the "MILTER" option when compiling.
